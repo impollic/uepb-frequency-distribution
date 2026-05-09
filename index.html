@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estatística Descritiva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --verde-claro: #eaf3de;
+        --verde-borda: #c0dd97;
+        --verde: #3b6d11;
+        --verde-escuro: #27500a;
+        --texto: #1a1a18;
+        --texto-sec: #5a5a56;
+        --texto-ter: #999990;
+        --fundo-pag: #f2f0e8;
+        --fundo-card: #ffffff;
+        --fundo-sup: #f7f5ef;
+        --borda-leve: rgba(0, 0, 0, 0.08);
+        --borda-med: rgba(0, 0, 0, 0.14);
+        --raio-md: 8px;
+        --raio-lg: 14px;
+      }
+
+      html,
+      body {
+        min-height: 100dvh;
+        background: var(--fundo-pag);
+        font-family: "Sora", sans-serif;
+        color: var(--texto);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      body {
+        padding: 2rem 1rem 4rem;
+      }
+
+      main {
+        width: 100%;
+        max-width: 720px;
+        transition: 300ms;
+      }
+
+      .rotulo-pagina {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--texto-ter);
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        font-size: clamp(20px, 5vw, 26px);
+        font-weight: 600;
+        line-height: 1.2;
+        margin-bottom: 4px;
+      }
+
+      .subtitulo-pag {
+        font-size: 14px;
+        color: var(--texto-sec);
+        margin-bottom: 2rem;
+      }
+
+      .card {
+        background: var(--fundo-card);
+        border: 0.5px solid var(--borda-leve);
+        border-radius: var(--raio-lg);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .rotulo-campo {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--texto-sec);
+        margin-bottom: 8px;
+      }
+
+      .area-entrada {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      textarea {
+        width: 100%;
+        font-family: "DM Mono", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        padding: 10px 14px;
+        border-radius: var(--raio-md);
+        border: 0.5px solid var(--borda-med);
+        background: var(--fundo-sup);
+        color: var(--texto);
+        outline: none;
+        resize: none;
+        height: 80px;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+
+      textarea:focus {
+        border-color: var(--verde);
+        box-shadow: 0 0 0 3px rgba(59, 109, 17, 0.1);
+      }
+
+      textarea::placeholder {
+        color: var(--texto-ter);
+      }
+
+      .btn {
+        width: 100%;
+        padding: 11px 20px;
+        font-family: "Sora", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: var(--raio-md);
+        border: 0.5px solid var(--borda-med);
+        background: var(--fundo-card);
+        color: var(--texto);
+        cursor: pointer;
+        transition:
+          background 0.12s,
+          transform 0.1s;
+      }
+
+      .btn:hover {
+        background: var(--fundo-sup);
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn-primario {
+        background: var(--verde);
+        color: var(--verde-claro);
+        border-color: var(--verde-escuro);
+      }
+      .btn-primario:hover {
+        background: var(--verde-escuro);
+      }
+
+      .msg-erro {
+        font-size: 13px;
+        color: #a32d2d;
+        margin-top: 6px;
+        display: none;
+      }
+
+      .btn-primario:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      @keyframes girar {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulsar-texto {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes entrar-resultado {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .loading-area {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 0 6px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .loading-area.visivel {
+        display: flex;
+        opacity: 1;
+      }
+
+      .loading-anel {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1.5px solid var(--verde-borda);
+        border-top-color: var(--verde);
+        animation: girar 0.9s linear infinite;
+        flex-shrink: 0;
+      }
+
+      .loading-texto {
+        font-size: 12px;
+        color: var(--texto-ter);
+        letter-spacing: 0.06em;
+        animation: pulsar-texto 1.6s ease-in-out infinite;
+      }
+
+      .resultado {
+        display: none;
+      }
+      .resultado.visivel {
+        display: block;
+        animation: entrar-resultado 0.35s ease both;
+      }
+
+      .rotulo-secao {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--texto-ter);
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      @keyframes surgir {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+          filter: blur(2px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0);
+        }
+      }
+
+      .chip {
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+        padding: 4px 11px;
+        border-radius: 999px;
+        border: 0.5px solid var(--borda-leve);
+        background: var(--fundo-sup);
+        color: var(--texto);
+        opacity: 0;
+        animation: surgir 0.3s ease forwards;
+      }
+
+      .chip.repetido {
+        background: var(--verde-claro);
+        border-color: var(--verde-borda);
+        color: var(--verde);
+      }
+
+      .grade-resumo {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .stat-card {
+        background: var(--fundo-sup);
+        border-radius: var(--raio-md);
+        padding: 10px 14px;
+      }
+
+      .stat-card.destaque {
+        border: 0.5px solid var(--verde-borda);
+        background: var(--verde-claro);
+      }
+
+      .stat-rotulo {
+        font-size: 11px;
+        color: var(--texto-ter);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+
+      .stat-card.destaque .stat-rotulo {
+        color: var(--verde);
+      }
+
+      .stat-valor {
+        font-family: "DM Mono", monospace;
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--texto);
+      }
+
+      .stat-card.destaque .stat-valor {
+        color: var(--verde-escuro);
+      }
+
+      .painel-opcoes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .opcao-col {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 0.5px solid var(--borda-med);
+        background: var(--fundo-sup);
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--texto-sec);
+        user-select: none;
+        transition:
+          background 0.12s,
+          color 0.12s,
+          border-color 0.12s;
+      }
+
+      .opcao-col input[type="checkbox"] {
+        display: none;
+      }
+
+      .opcao-col.ativa {
+        background: var(--verde-claro);
+        border-color: var(--verde-borda);
+        color: var(--verde);
+        font-weight: 500;
+      }
+
+      .tabela-wrap {
+        overflow-x: auto;
+        border-radius: var(--raio-md);
+        border: 0.5px solid var(--borda-leve);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      thead th {
+        background: var(--fundo-sup);
+        padding: 9px 14px;
+        text-align: right;
+        font-weight: 500;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--texto-sec);
+        border-bottom: 0.5px solid var(--borda-leve);
+        white-space: nowrap;
+      }
+
+      thead th:first-child,
+      tbody td:first-child {
+        text-align: left;
+      }
+
+      tbody td {
+        padding: 8px 14px;
+        text-align: right;
+        font-family: "DM Mono", monospace;
+        color: var(--texto);
+        border-bottom: 0.5px solid var(--borda-leve);
+      }
+
+      tbody tr:nth-child(even) td {
+        background: var(--fundo-sup);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      tfoot td {
+        padding: 9px 14px;
+        text-align: right;
+        font-family: "DM Mono", monospace;
+        font-weight: 500;
+        color: var(--texto);
+        background: var(--fundo-sup);
+        border-top: 1.5px solid var(--borda-med);
+        font-size: 13px;
+      }
+
+      tfoot td:first-child {
+        text-align: left;
+        font-family: "Sora", sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--texto-sec);
+      }
+
+      tfoot td.sem-total {
+        color: var(--texto-ter);
+        font-weight: 400;
+      }
+
+      .glossario-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .glossario-item {
+        background: var(--fundo-sup);
+        border-radius: var(--raio-md);
+        padding: 12px 14px;
+        border: 0.5px solid var(--borda-leve);
+      }
+
+      .glossario-simbolo {
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--verde);
+        margin-bottom: 3px;
+      }
+
+      .glossario-nome {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--texto);
+        margin-bottom: 4px;
+      }
+
+      .glossario-desc {
+        font-size: 12px;
+        color: var(--texto-sec);
+        line-height: 1.5;
+      }
+
+      .glossario-formula {
+        margin-top: 5px;
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        color: var(--texto-ter);
+        background: var(--fundo-card);
+        border-radius: 4px;
+        padding: 4px 8px;
+        display: inline-block;
+      }
+
+      @media (max-width: 520px) {
+        .grade-resumo {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .glossario-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .rodape {
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        width: 100%;
+        max-width: 720px;
+        border-top: 0.5px solid var(--borda-leve);
+        font-size: 12px;
+        color: var(--texto-ter);
+        text-align: center;
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="rotulo-pagina">Estatística Descritiva</p>
+      <h1>Distribuição de Frequências</h1>
+      <p class="subtitulo-pag">
+        Ferramenta acadêmica para geração de tabelas de frequência discreta
+      </p>
+
+      <div class="card">
+        <p class="rotulo-campo">
+          Digite os valores (separados por espaço ou quebra de linha)
+        </p>
+        <div class="area-entrada">
+          <textarea
+            id="inputValores"
+            placeholder="Ex: 192 196 173 193 195 204 235 190 194 184"
+          ></textarea>
+          <button
+            class="btn btn-primario"
+            id="btnCalcular"
+            onclick="processar()"
+          >
+            Calcular ƒ
+          </button>
+        </div>
+        <div class="loading-area" id="loadingArea">
+          <div class="loading-anel"></div>
+          <span class="loading-texto">Organizando os dados…</span>
+        </div>
+        <p class="msg-erro" id="msgErro">Insira valores numéricos válidos.</p>
+      </div>
+
+      <div class="resultado" id="areaResultado">
+        <div class="card">
+          <p class="rotulo-secao">Rol (valores ordenados em ordem crescente)</p>
+          <div class="chips" id="chipsOrdenados"></div>
+        </div>
+
+        <div class="card">
+          <p class="rotulo-secao">Resumo</p>
+          <div class="grade-resumo" id="gradeResumo"></div>
+        </div>
+
+        <div class="card">
+          <p class="rotulo-secao" style="margin-bottom: 12px">
+            Tabela de frequências
+          </p>
+          <p class="rotulo-campo" style="margin-bottom: 10px">
+            Adicionar colunas à tabela:
+          </p>
+          <div class="painel-opcoes" id="painelOpcoes"></div>
+          <div class="tabela-wrap">
+            <table id="tabelaFreq">
+              <thead id="cabecalho"></thead>
+              <tbody id="corpoTabela"></tbody>
+              <tfoot id="rodapeTabela"></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="rotulo-secao" style="margin-bottom: 14px">
+            Notação e fórmulas
+          </p>
+          <div class="glossario-grid">
+            <div class="glossario-item">
+              <p class="glossario-simbolo">n</p>
+              <p class="glossario-nome">Total de observações</p>
+              <p class="glossario-desc">
+                Quantidade total de valores no conjunto de dados.
+              </p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">xi</p>
+              <p class="glossario-nome">Valor observado</p>
+              <p class="glossario-desc">
+                Cada valor distinto presente no conjunto de dados. Obs: na
+                distribuição contínua, xi representa o ponto médio de cada
+                classe.
+              </p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">fi</p>
+              <p class="glossario-nome">Frequência absoluta</p>
+              <p class="glossario-desc">
+                Quantas vezes cada valor xi aparece no conjunto.
+              </p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">frs</p>
+              <p class="glossario-nome">Frequência relativa simples</p>
+              <p class="glossario-desc">
+                Proporção de cada valor em relação ao total.
+              </p>
+              <p class="glossario-formula">frs = fi / n</p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">fps%</p>
+              <p class="glossario-nome">Frequência percentual simples</p>
+              <p class="glossario-desc">
+                Frequência relativa expressa em porcentagem.
+              </p>
+              <p class="glossario-formula">fps = (fi / n) × 100</p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">fac</p>
+              <p class="glossario-nome">Frequência acumulada crescente</p>
+              <p class="glossario-desc">
+                Soma das frequências absolutas até o valor xi.
+              </p>
+              <p class="glossario-formula">fac = fi₁ + fi₂ + … + fiₖ</p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">fad</p>
+              <p class="glossario-nome">Frequência acumulada decrescente</p>
+              <p class="glossario-desc">
+                Soma das frequências absolutas a partir do valor xi até o maior.
+              </p>
+              <p class="glossario-formula">fad = fiₖ + … + fiₙ</p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">fpa%</p>
+              <p class="glossario-nome">Freq. percentual acumulada crescente</p>
+              <p class="glossario-desc">
+                Frequência acumulada crescente expressa em porcentagem.
+              </p>
+              <p class="glossario-formula">fpa = (fac / n) × 100</p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">fpda%</p>
+              <p class="glossario-nome">
+                Freq. percentual acumulada decrescente
+              </p>
+              <p class="glossario-desc">
+                Frequência acumulada decrescente expressa em porcentagem.
+              </p>
+              <p class="glossario-formula">fpda = (fad / n) × 100</p>
+            </div>
+            <div class="glossario-item">
+              <p class="glossario-simbolo">AT</p>
+              <p class="glossario-nome">Amplitude total</p>
+              <p class="glossario-desc">
+                Diferença entre o maior e o menor valor do conjunto.
+              </p>
+              <p class="glossario-formula">AT = Xmáx − Xmín</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="rodape">
+      Desenvolvido por <strong>Apollo Borges</strong>
+    </footer>
+
+    <script>
+      const COLUNAS_OPCIONAIS = [
+        { id: "frs", rotulo: "Frs" },
+        { id: "fps", rotulo: "Fps%" },
+        { id: "fac", rotulo: "Fac" },
+        { id: "fad", rotulo: "Fad" },
+        { id: "fpa", rotulo: "Fpa%" },
+        { id: "fpda", rotulo: "Fpda%" },
+      ];
+
+      let colunasAtivas = new Set();
+      let dadosTabela = [];
+      let totalN = 0;
+      let casasEntrada = 0;
+      let casasFrs = 0;
+      let casasFps = 0;
+
+      function sanitizarTexto(texto) {
+        // extrai tokens que parecem números: sinal negativo opcional, dígitos, separador decimal
+        const tokens = texto.match(/-?[\d]+([.,][\d]+)?/g) || [];
+        return tokens.join(" ");
+      }
+
+      function lerValores(texto) {
+        const tokens = texto.match(/-?[\d]+([.,][\d]+)?/g) || [];
+        return tokens.map((s) => parseFloat(s.replace(",", ".")));
+      }
+
+      // quantas casas decimais tem um número já parseado
+      function casasDeUmNumero(n) {
+        const str = n.toString();
+        const dot = str.indexOf(".");
+        if (dot === -1) return 0;
+        return Math.min(str.length - dot - 1, 4);
+      }
+
+      // formata removendo zeros desnecessários, respeitando o mínimo de casas do contexto
+      function fmt(n, casas) {
+        if (n === null || n === undefined) return "—";
+        if (casas === 0) return String(Math.round(n));
+        const fixado = n.toFixed(casas);
+        // remove zeros à direita mas mantém pelo menos 'casas' se todos forem significativos
+        return fixado.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+      }
+
+      // calcula o número necessário de casas para um conjunto de valores float
+      function detectarCasas(valores) {
+        return Math.min(Math.max(...valores.map(casasDeUmNumero)), 4);
+      }
+
+      // para frs: precisão suficiente para não perder informação relevante
+      // usa no mínimo 2 casas e no máximo 4
+      function calcCasasFrs(n) {
+        // frs = fi/n — precisão depende da magnitude de n
+        if (n <= 10) return 4;
+        if (n <= 100) return 4;
+        return 4;
+      }
+
+      // para fps (percentual): quantas casas para não perder precisão relativa
+      function calcCasasFps(n) {
+        if (n <= 10) return 2;
+        if (n <= 100) return 2;
+        return 2;
+      }
+
+      // determina o número de casas necessário para um conjunto de floats calculados
+      // evita zeros desnecessários mas mantém consistência visual
+      function casasParaConjunto(valores) {
+        let max = 0;
+        valores.forEach((v) => {
+          const s = v.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+          const dot = s.indexOf(".");
+          max = Math.max(max, dot === -1 ? 0 : s.length - dot - 1);
+        });
+        return Math.min(max, 4);
+      }
+
+      function processar() {
+        const raw = document.getElementById("inputValores").value;
+        const msgErro = document.getElementById("msgErro");
+        const areaRes = document.getElementById("areaResultado");
+        const btn = document.getElementById("btnCalcular");
+        const loading = document.getElementById("loadingArea");
+
+        msgErro.style.display = "none";
+
+        const valores = lerValores(raw);
+        if (!valores.length) {
+          msgErro.style.display = "block";
+          areaRes.classList.remove("visivel");
+          return;
+        }
+
+        btn.disabled = true;
+        areaRes.classList.remove("visivel");
+        loading.classList.add("visivel");
+
+        setTimeout(() => {
+          casasEntrada = detectarCasas(valores);
+
+          const ordenados = [...valores].sort((a, b) => a - b);
+          totalN = ordenados.length;
+
+          const minimo = ordenados[0];
+          const maximo = ordenados[totalN - 1];
+          const amplitude = parseFloat((maximo - minimo).toFixed(casasEntrada));
+
+          const contagem = {};
+          ordenados.forEach((v) => {
+            contagem[v] = (contagem[v] || 0) + 1;
+          });
+
+          const valoresUnicos = Object.keys(contagem).map(Number);
+          let facAcum = 0;
+
+          dadosTabela = valoresUnicos.map((xi) => {
+            const fi = contagem[xi];
+            facAcum += fi;
+            return {
+              xi,
+              fi,
+              frs: fi / totalN,
+              fps: (fi / totalN) * 100,
+              fac: facAcum,
+              fad: null,
+              fpa: (facAcum / totalN) * 100,
+              fpda: null,
+            };
+          });
+
+          let fadAcum = 0;
+          for (let i = dadosTabela.length - 1; i >= 0; i--) {
+            fadAcum += dadosTabela[i].fi;
+            dadosTabela[i].fad = fadAcum;
+            dadosTabela[i].fpda = (fadAcum / totalN) * 100;
+          }
+
+          // calcula casas ideais para frs e fps observando os valores reais
+          casasFrs = casasParaConjunto(dadosTabela.map((l) => l.frs));
+          casasFps = casasParaConjunto(dadosTabela.map((l) => l.fps));
+
+          renderizarChips(ordenados, contagem);
+          renderizarResumo(totalN, minimo, maximo, amplitude);
+
+          if (!document.getElementById("painelOpcoes").hasChildNodes()) {
+            montarToggles();
+          }
+
+          renderizarTabela();
+
+          loading.classList.remove("visivel");
+          btn.disabled = false;
+          areaRes.classList.add("visivel");
+        }, 420);
+      }
+
+      function renderizarChips(ordenados, contagem) {
+        const container = document.getElementById("chipsOrdenados");
+        container.innerHTML = "";
+        ordenados.forEach((v, i) => {
+          const chip = document.createElement("span");
+          chip.className = "chip" + (contagem[v] > 1 ? " repetido" : "");
+          chip.textContent = fmt(v, casasEntrada);
+          chip.style.animationDelay = Math.min(i * 18, 900) + "ms";
+          container.appendChild(chip);
+        });
+      }
+
+      function renderizarResumo(n, minimo, maximo, amplitude) {
+        const grade = document.getElementById("gradeResumo");
+        grade.innerHTML = "";
+        const itens = [
+          { rotulo: "n (total)", valor: n, destaque: true },
+          {
+            rotulo: "Valor mínimo",
+            valor: fmt(minimo, casasEntrada),
+            destaque: false,
+          },
+          {
+            rotulo: "Valor máximo",
+            valor: fmt(maximo, casasEntrada),
+            destaque: false,
+          },
+          {
+            rotulo: "Amplitude",
+            valor: fmt(amplitude, casasEntrada),
+            destaque: false,
+          },
+        ];
+        itens.forEach((item) => {
+          const div = document.createElement("div");
+          div.className = "stat-card" + (item.destaque ? " destaque" : "");
+          div.innerHTML = `<p class="stat-rotulo">${item.rotulo}</p><p class="stat-valor">${item.valor}</p>`;
+          grade.appendChild(div);
+        });
+      }
+
+      function montarToggles() {
+        const painel = document.getElementById("painelOpcoes");
+        painel.innerHTML = "";
+        COLUNAS_OPCIONAIS.forEach((col) => {
+          const label = document.createElement("label");
+          label.className = "opcao-col";
+          label.innerHTML = `<input type="checkbox" value="${col.id}" onchange="toggleColuna('${col.id}', this)">${col.rotulo}`;
+          painel.appendChild(label);
+        });
+      }
+
+      function toggleColuna(id, checkbox) {
+        if (checkbox.checked) {
+          colunasAtivas.add(id);
+          checkbox.parentElement.classList.add("ativa");
+        } else {
+          colunasAtivas.delete(id);
+          checkbox.parentElement.classList.remove("ativa");
+        }
+        renderizarTabela();
+      }
+
+      function renderizarTabela() {
+        const cabecalho = document.getElementById("cabecalho");
+        const corpo = document.getElementById("corpoTabela");
+        const rodape = document.getElementById("rodapeTabela");
+
+        const colunas = [
+          { id: "xi", rotulo: "Valores" },
+          { id: "fi", rotulo: "fi" },
+        ];
+        COLUNAS_OPCIONAIS.forEach((col) => {
+          if (colunasAtivas.has(col.id)) colunas.push(col);
+        });
+
+        cabecalho.innerHTML = `<tr>${colunas.map((c) => `<th>${c.rotulo}</th>`).join("")}</tr>`;
+
+        corpo.innerHTML = dadosTabela
+          .map((linha) => {
+            const celulas = colunas.map((col) => {
+              const val = linha[col.id];
+              let exibe;
+              if (col.id === "xi") exibe = fmt(val, casasEntrada);
+              else if (col.id === "fi" || col.id === "fac" || col.id === "fad")
+                exibe = val;
+              else if (col.id === "frs") exibe = fmt(val, casasFrs);
+              else if (col.id === "fps") exibe = fmt(val, casasFps);
+              else if (col.id === "fpa") exibe = fmt(val, casasFps);
+              else if (col.id === "fpda") exibe = fmt(val, casasFps);
+              else exibe = val;
+              return `<td>${exibe}</td>`;
+            });
+            return `<tr>${celulas.join("")}</tr>`;
+          })
+          .join("");
+
+        const celulasTotal = colunas.map((col) => {
+          if (col.id === "xi") return `<td>Total</td>`;
+          if (col.id === "fi") return `<td>${totalN}</td>`;
+          if (col.id === "frs") return `<td>${fmt(1, casasFrs)}</td>`;
+          if (col.id === "fps") return `<td>${fmt(100, casasFps)}</td>`;
+          return `<td class="sem-total">—</td>`;
+        });
+
+        rodape.innerHTML = `<tr>${celulasTotal.join("")}</tr>`;
+      }
+
+      const inputEl = document.getElementById("inputValores");
+
+      inputEl.addEventListener("blur", () => {
+        const sanitizado = sanitizarTexto(inputEl.value);
+        if (sanitizado !== inputEl.value.trim()) {
+          inputEl.value = sanitizado;
+        }
+      });
+
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.ctrlKey) processar();
+      });
+    </script>
+  </body>
+</html>
